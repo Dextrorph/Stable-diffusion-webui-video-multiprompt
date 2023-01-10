@@ -15,7 +15,7 @@ import modules
 
 class Script(scripts.Script):
     def title(self):
-        return "Videos"
+        return "Videos multiprompt"
 
     def show(self, is_img2img):
         return is_img2img
@@ -48,10 +48,18 @@ class Script(scripts.Script):
         trny_up = gr.Checkbox(label='Up', value=False)
         trny_percent = gr.Slider(minimum=0, maximum=50, step=1, label='PercentY', value=0)
         show = gr.Checkbox(label='Show generated pictures in ui', value=False)
+
+        use_multiprompt = gr.Checkbox(label='Use Multipromt?', value=False)
+        multiprompt_path = gr.Textbox(label='Multiprompt txt path', value="")
+        seed_reuse = gr.Slider(minimum=1, maximum=50, step=1, label='Use seed for n images', value=1)
+        use_prompt_mixing = gr.Checkbox(label='Use Prompt Mixing?', value=False)
+        prompt_mixing_loops = gr.Slider(minimum=0, maximum=50, step=1, label='Prompt Mixing Loops', value=0)
+
         return [show, prompt_end, prompt_end_trigger, seconds, fps, smooth, denoising_strength_change_factor,
                 zoom, zoom_level, direction_x, direction_y,
                 rotate, rotate_degree,
-                is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent]
+                is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent,
+                use_multiprompt, multiprompt_path, seed_reuse, use_prompt_mixing, prompt_mixing_loops]
 
     def zoom_into(self, img, zoom, direction_x, direction_y):
         neg = lambda x: 1 if x > 0 else -1
@@ -144,7 +152,8 @@ class Script(scripts.Script):
             show, prompt_end, prompt_end_trigger, seconds, fps, smooth, denoising_strength_change_factor,
             zoom, zoom_level, direction_x, direction_y,
             rotate, rotate_degree,
-            is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent):
+            is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent,
+            use_multiprompt, multiprompt_path, seed_reuse, use_prompt_mixing, prompt_mixing_loops):
         processing.fix_seed(p)
 
         p.batch_size = 1
@@ -167,6 +176,25 @@ class Script(scripts.Script):
 
         initial_color_corrections = [processing.setup_color_correction(p.init_images[0])]
 
+        multiprompt = []
+        if use_multiprompt:
+            with open(multiprompt_path) as file: multiprompt_raw = file.read().splitlines()
+            prompt_global = ''
+            for line in multiprompt_raw:
+                if line.strip()[0] == '$':
+                    prompt_global += ', ' + line.strip()[1:]
+                if not (line == '' or line.isspace() or line.strip()[0] == '#' or line.strip()[0] == '$'):
+                    split_iter = [elem.strip() for elem in line.split('::')]
+                    if len(split_iter) == 2:
+                        split_iter.append('')
+                    multiprompt.append([int(split_iter[0]), split_iter[1], split_iter[2]])
+        multiprompt.sort()
+        if len(multiprompt) > 0:
+            multiprompt_scale = (loops / multiprompt[-1][0]) * (len(multiprompt) / (len(multiprompt) + 1))
+        for data in multiprompt:
+            data[0] = int(data[0] * multiprompt_scale)
+        loop_modulo = 0
+
         for n in range(batch_count):
             history = []
 
@@ -177,7 +205,17 @@ class Script(scripts.Script):
 
                 if opts.img2img_color_correction:
                     p.color_corrections = initial_color_corrections
-                
+
+                if use_multiprompt and len(multiprompt) > 0:
+                    for j in range(len(multiprompt)):
+                        if i >= multiprompt[j][0]:
+                            if use_prompt_mixing and i - multiprompt[j][0] < prompt_mixing_loops and j > 0:
+                                p.prompt = multiprompt[j][1] + ', ' + multiprompt[j-1][1] + prompt_global
+                                p.negative_prompt = multiprompt[j][2] + ', ' + multiprompt[j-1][2]
+                            else:
+                                p.prompt = multiprompt[j][1] + prompt_global
+                                p.negative_prompt = multiprompt[j][2]
+
                 if i > int(loops*prompt_end_trigger) and prompt_end not in p.prompt and prompt_end != '':
                     p.prompt = prompt_end.strip() + ' ' + p.prompt.strip()
 
@@ -214,7 +252,13 @@ class Script(scripts.Script):
 
                 p.init_images = [init_img]
 
-                p.seed = seed + 1
+                if loop_modulo >= seed_reuse-1:
+                    loop_modulo = 0
+                    p.seed = seed + 1
+                else:
+                    loop_modulo += 1
+                    p.seed = seed
+
                 p.denoising_strength = min(max(p.denoising_strength * denoising_strength_change_factor, 0.1), 1)
 
 
