@@ -49,7 +49,7 @@ Numpy Expert anyone? (would be good to keep the color palette intact)
 
 # Multiprompt
 
-This script contains all functionality of the original one, but also adds multiprompt. To use them just check the box with "Use Multipromt?" caption and give the ABSOLUTE path of the file into the text box below. This file needs to be a properly formated txt file. Here is a simple example of such a file:
+This script contains all functionality of the original one, but also adds multiprompt. To use it just check the box with "Use Multipromt?" caption and give the ABSOLUTE path of the file into the text box below. This file needs to be a properly formated txt file. Here is a simple example of such a file:
 
 ~~~
 # Starts with a cat and makes it a dog after half of the time.
