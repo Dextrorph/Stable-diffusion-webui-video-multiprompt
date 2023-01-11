@@ -76,3 +76,63 @@ This option is experimental and I strongly recommend not to use it, as it seems 
 
 This options allows the prompts to be mixed when changing the "scene". This means that when a new prompt is used for n images (selected amount on the slider) both prompts will be combined, that of the new scene and the old one. If you for example have 30 FPS and select Prompt Mixing Loops = 15 this would result in 0,5 seconds of mixed prompts in between scenes. In the example above this would mean it does not directly go from "cat" to "dog", but uses "cat, dog" for 15 images. The results of this method do heavily vary depending on the concrete prompts and the model you are using, but sometimes it produces some really neat transformations that look much more fluid than without prompt mixing.
 
+
+## Examples for multiprompt
+
+These are three different examples of the multiprompt example from above.
+
+https://user-images.githubusercontent.com/58605249/211693510-aaf14830-b3d2-4989-a2c5-75742cc9dc84.mp4
+
+
+https://user-images.githubusercontent.com/58605249/211693537-5aa8414d-37f4-48dd-955b-e3bd15b9bb79.mp4
+
+
+https://user-images.githubusercontent.com/58605249/211693603-c0b52992-8db0-44ac-a7ff-4c5882c8f4e0.mp4
+
+
+Here is an example of a more complex multiprompt and two small results.
+
+~~~
+# Multiprompt for a video about evolution
+1::chemical reaction, molecules, atoms, protein::
+25::bacteria::
+50::multicellular organism, underwater::
+75::sea worm in the ocean::
+100::fish in the ocean::
+110::coelacanth in the ocean, prehistoric fish::
+125::coelacanth crawling on the beach, prehistoric fish::underwater, fish
+150::reptilian::
+175::amphibian, frog::
+200::rodents, rat::
+225::squirrel::
+250::monkey::
+275::human monkey::
+300::neanderthal::comic
+325::Stone Age man::comic
+350::knight::comic
+375::man with phone::
+400::man in the future::
+425::cyborg::
+450::alien cyborg::
+475::singularity, cyber technology, psychedelic::
+500::creation of universe, psychedelic::
+~~~
+
+
+
+https://user-images.githubusercontent.com/58605249/211694043-74c67076-4e49-4e43-a9ce-de4b1edb1c1c.mp4
+
+
+
+https://user-images.githubusercontent.com/58605249/211694087-05b8936c-6be9-4407-9e61-8c4013504803.mp4
+
+
+
+Long version, better quality, 16:9, 30 FPS
+
+https://www.youtube.com/watch?v=-CuH8WdsKag&t=11s
+
+
+Version with improved multipromt txt file (more precise prompts), 30 FPS
+
+https://www.youtube.com/watch?v=oBkNe_uzgXA&t=32s
