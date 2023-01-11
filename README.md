@@ -77,6 +77,21 @@ This option is experimental and I strongly recommend not to use it, as it seems 
 This options allows the prompts to be mixed when changing the "scene". This means that when a new prompt is used for n images (selected amount on the slider) both prompts will be combined, that of the new scene and the old one. If you for example have 30 FPS and select Prompt Mixing Loops = 15 this would result in 0,5 seconds of mixed prompts in between scenes. In the example above this would mean it does not directly go from "cat" to "dog", but uses "cat, dog" for 15 images. The results of this method do heavily vary depending on the concrete prompts and the model you are using, but sometimes it produces some really neat transformations that look much more fluid than without prompt mixing.
 
 
+## Tipps on using this script
+
+- I tested this script with different models and it works, but the results do vary a lot. If a multiprompt does not give good results on one model it might on a different model.
+- Test your prompts separately but using txt2img if you're not sure if they will work as expected.
+- Generate short versions with low FPS first to see how you can improve the multiprompt txt before you start making longer versions.
+- Separate content and style by using the global prompt feature (with $), you can have several global prompts in one file, they just get concatenated.
+- Generate an appropriate starting image with txt2img.
+- You can make the video more fluid by reducing the denoising strength while increasing the sampling steps and FPS. The last example on YouTube "Evolution 4 (Stable Diffusion Video)" for example has 30 FPS and I used 60 sampling steps with a denoising strength of 0.5 and it looks almost fluid.
+- If you only have 6GB VRAM like me you can make 1:1 with 512x512 (Standard) or 16:9 with 640x360. I tested this resolutions a lot and never had any problems. Anythings bigger did cause problems, although not always.
+- Zoom and rotate do still work, so feel free to also use them.
+- I find that a prompt mixing of 20 with 30 FPS, so 2/3 of a second, seems to be good for longer videos with higher quality, but for better results it might be preferable to reduce prompt mixing to 10 or even 5 and add a short additional transion "scene" to the multiprompt.
+- A higher CFG Scale should give results closer to the prompt but with worse image quality. I guess around 20 should be reasonable, but it might be worth to test different values.
+- Try different sampling methods, that might also help to improve results.
+- Prompt end still works, with an End Prompt Blend Trigger Percent of 0 it can be used to add more global prompts without having to edit the multiprompt txt.
+
 ## Examples for multiprompt
 
 These are three different examples of the multiprompt example from above.
