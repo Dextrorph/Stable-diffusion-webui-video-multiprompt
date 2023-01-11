@@ -165,6 +165,7 @@ for name in os.listdir("C:\\Users\\{YourUserName}\\stable-diffusion-webui\\outpu
     if os.path.isfile("C:\\Users\\{YourUserName}\\stable-diffusion-webui\\outputs\\img2img-images\\" + name):
         if int(name[:5]) >= 2098:    # <--- The number of the first image to use
             files.append(name)
+files.sort()
 with open("C:\\Users\\{YourUserName}\\stable-diffusion-webui\\outputs\\img2img-videos\\{YourFileName}.txt", "a") as myfile:
     for elem in files:
         myfile.write("file 'C:\\Users\\{YourUserName}\\stable-diffusion-webui\\outputs\\img2img-images\\" + elem + "'\n")
