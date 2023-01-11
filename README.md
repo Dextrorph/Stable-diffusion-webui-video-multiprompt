@@ -49,7 +49,7 @@ Numpy Expert anyone? (would be good to keep the color palette intact)
 
 # Multiprompt
 
-This script contains all functionality of the original one, but also adds multiprompt. To use them just check the box with "Use Multipromt?" caption and give the ABSOLUTE path of the file into the text box below. This file needs to be a properly formatted txt file. Here is an simple example of such a file:
+This script contains all functionality of the original one, but also adds multiprompt. To use them just check the box with "Use Multipromt?" caption and give the ABSOLUTE path of the file into the text box below. This file needs to be a properly formated txt file. Here is a simple example of such a file:
 
 ~~~
 # Starts with a cat and makes it a dog after half of the time.
@@ -61,11 +61,18 @@ $psychedelic, realistic, high quality
 
 This example begins with a comment. Comments are allowed in the files, but only full lines, comments on the line as prompts will be considered prompt and used as such. So make sure to always use '#' as first character of a line containing a comment (whitespace is no problem). After that there is a line beginning with the '$' symbol. Everything behind this symbol is considered to be a global prompt, so it will be added to every single prompt. Use this if you want to add the same word to all prompts. It's recommended to use these global prompts for the style of the video, so that style and content are separated logically. After that comes the actual multipromt. Each line has to begin with a number. This number is an arbitrary time unit which will automatically be scaled to fit the selected length of your video. Only the relative size matters. In the given example from 1 to 199 the prompt will be "cat, psychedelic, realistic, high quality" and from 200 to 450 it will be "dog, psychedelic, realistic, high quality". Why 450, not 300? Because the number marks the beginning, the actual length will be calculated, the last scene has a length that is the average of all other scenes. To make the last scene longer you can just add it twice, then the length of the last scene will be added to that of the scond to last one, like in this example.
 
+The basic structure of a line in the script representing a "scene" looks like this:
+~~~
+Number::Prompt::Negative Prompt
+~~~
+
+The :: for separating the number from the prompt is required, the second :: can be left away if no negative prompt is used.
+
 ## Use seed for n images
 
 This option is experimental and I strongly recommend not to use it, as it seems to mess up the results. What it does is reusing the same seed for the selected number of images. I don't know why it gives the results that it does, probably has to do with subseeds and the separate Pytorch seed, so it should only be used for experimentation.
 
 ## Use Prompt Mixing?
 
-This options allows the prompts to be mixed when changing the "scene". This means that when a new prompt is used for n images (selected amount on the slider) both prompt will be combined, that of the new scene and the old one. If you for example have 30 FPS and select Prompt Mixing Loop = 15 this would result in 0,5 seconds of mixed prompt in between scenes. In the example above this would mean it does not directly go from "cat" to "dog", but uses "cat, dog" for 15 images. The results on this method do heavily vary depending on the concrete prompts and the model you are using, but sometimes it produces some really neat transformations that look much more fluid than without prompt mixing.
+This options allows the prompts to be mixed when changing the "scene". This means that when a new prompt is used for n images (selected amount on the slider) both prompts will be combined, that of the new scene and the old one. If you for example have 30 FPS and select Prompt Mixing Loops = 15 this would result in 0,5 seconds of mixed prompts in between scenes. In the example above this would mean it does not directly go from "cat" to "dog", but uses "cat, dog" for 15 images. The results of this method do heavily vary depending on the concrete prompts and the model you are using, but sometimes it produces some really neat transformations that look much more fluid than without prompt mixing.
 
