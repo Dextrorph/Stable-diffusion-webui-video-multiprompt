@@ -186,46 +186,46 @@ Required arguments (positional):
 - [1] = prompt: str
 
 Optional arguments (keywords):
-- prompt_global: str
-- negative_prompt_global: str
+    prompt_global: str
+    negative_prompt_global: str
 
-- negative_prompt: str
-- seed: int
-- subseed: int
-- subseed_strength: float
-- seed_resize_from_h: int
-- seed_resize_from_w: int
-- steps: int
-- cfg_scale: float
-- restore_faces: bool
-- tiling: bool
-- denoising_strength: float
+    negative_prompt: str
+    seed: int
+    subseed: int
+    subseed_strength: float
+    seed_resize_from_h: int
+    seed_resize_from_w: int
+    steps: int
+    cfg_scale: float
+    restore_faces: bool
+    tiling: bool
+    denoising_strength: float
 
-- zoom: bool
-- zoom_level: float
-- direction_x: float
-- direction_y: float
+    zoom: bool
+    zoom_level: float
+    direction_x: float
+    direction_y: float
 
-- rotate: bool
-- rotate_degree: float
+    rotate: bool
+    rotate_degree: float
 
-- is_tiled: bool
-- trnx: bool
-- trnx_left: bool
-- trnx_percent: float
-- trny: bool
-- trny_up: bool
-- trny_percent: float
+    is_tiled: bool
+    trnx: bool
+    trnx_left: bool
+    trnx_percent: float
+    trny: bool
+    trny_up: bool
+    trny_percent: float
 
-- seed_reuse: int
-- use_prompt_mixing: bool
-- prompt_mixing_loops: int
-- gradual_mixing: bool
+    seed_reuse: int
+    use_prompt_mixing: bool
+    prompt_mixing_loops: int
+    gradual_mixing: bool
 ~~~
 
 ## Model ignoring beginning of prompt bug
 
-When testing the new version of this script I realized that there is a problem with some models like protogenX58 giving really bad results and after two days of analyzing it with guys in Reddit I finally found out that the problem is that in some models the first part of the prompt is ignored. If only the character or the whole first word is ignored is word-dependend so for some word is this, for some that. But all tests consistently showed that for every word when putting a comma in front of it the comma gets ignored instead of the word or parts of it, so just putting a comma in front of all prompts does fix this behaviour. This script has the option to automatically add a comma in front of every prompt before processing which is controlled by the "Add comma before prompt to hotfix issue with ignored prompts in some models?" checkbox.
+When testing the new version of this script I realized that there is a problem with some models like protogenX58 giving really bad results and I finally found out that the problem is that in some models the first part of the prompt is ignored. If only the character or the whole first word is ignored is word-dependend so for some word is this, for some that. But all tests consistently showed that for every word when putting a comma in front of it the comma gets ignored instead of the word or parts of it, so just putting a comma in front of all prompts does fix this behaviour. This script has the option to automatically add a comma in front of every prompt before processing which is controlled by the "Add comma before prompt to hotfix issue with ignored prompts in some models?" checkbox.
 
 
 ## FFMPEG bug
