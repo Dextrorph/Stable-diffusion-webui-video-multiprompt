@@ -49,32 +49,32 @@ Numpy Expert anyone? (would be good to keep the color palette intact)
 
 # Multiprompt
 
-This script contains all functionality of the original one, but also adds multiprompt. To use it just check the box with "Use Multipromt?" caption and give the ABSOLUTE path of the file into the text box below. This file needs to be a properly formated txt file. Here is a simple example of such a file:
+This script contains all functionality of the original one, but also adds multiprompt. To use it just check the box with "Use Multipromt?" caption and give the ABSOLUTE path of the file into the text box below. This file needs to be a properly formated .yaml file. Here is a simple example of such a file:
 
 ~~~
-# Starts with a cat and makes it a dog after half of the time.
-$psychedelic, realistic, high quality
-1::cat::person, human
-200::dog::person, human
-300::dog::person, human
+# Starts with a cat and makes it a dog after half of the time and start to slowly zoom in.
+- - 10
+  - cat
+  - global_prompt: poster art
+- - 10
+  - dog
+  - negative_prompt: human
+    zoom: true
+    zoom_level: 1.02
 ~~~
 
-This example begins with a comment. Comments are allowed in the files, but only full lines, comments on the same line as prompts will be considered prompt and used as such. So make sure to always use '#' as first character of a line containing a comment (whitespace is no problem). After that there is a line beginning with the '$' symbol. Everything behind this symbol is considered to be a global prompt, so it will be added to every single prompt. Use this if you want to add the same word to all prompts. It's recommended to use these global prompts for the style of the video, so that style and content are separated. After that comes the actual multiprompt. Each line has to begin with a number. This number is an arbitrary time unit which will automatically be scaled to fit the selected length of your video. Only the relative size matters. In the given example from 1 to 199 the prompt will be "cat, psychedelic, realistic, high quality" and from 200 to 450 it will be "dog, psychedelic, realistic, high quality". Why 450, not 300? Because the number marks the beginning, the actual length will be calculated, the last scene has a length that is the average of all other scenes. To make the last scene longer you can just add it twice, then the length of the last scene will be added to that of the second to last one, like in this example.
+This example begins with a comment. Comments are allowed in the files look up YAML comments for more information. It's recommended to use global prompts for the style of the video, so that style and content are separated. Each scene has to begin with an integer number that represents the duration of the scene. This number is an arbitrary time unit which will automatically be scaled to fit the selected length of your video. In the next line comes the prompt for that scene. These first two arguments are required for any scene. After that come keyword arguments.
 
-The basic structure of a line in the script representing a "scene" looks like this:
-~~~
-Number::Prompt::Negative Prompt
-~~~
+WARNING: Note that in the last line of the example there is no "-" symbol before the part with "zoom_level: 1.02"  and the same is true for the line above. That is correct, only the first keyword argument must have a "-", every following keyword argument must not have a "-" in the beginning. This is because of the way YAML understands the minus (it represents a list element) and the keyword dictionary is the optional third list element in each scene data list. But the keyword arguments are not different list elements, they are all elements of the same dictionary.
 
-The :: for separating the number from the prompt is required, the second :: can be left away if no negative prompt is used.
+"global_prompt" is a prompt that will be added to the prompt of all scenes. If you want to set it for all scenes put it in the first scene. Using this keyword argument later will overwrite the global prompt defined earlier, if any, like it's the case with all keyword arguments. "zoom" is a boolean for enabling zoom, but for anything to actually happen we also have to set "zoom_level" to a value different than 1.
 
-## Use seed for n images
-
-This option is experimental and I strongly recommend not to use it, as it seems to mess up the results. What it does is reusing the same seed for the selected number of images. I don't know why it gives the results that it does, probably has to do with subseeds and the separate Pytorch seed, so it should only be used for experimentation.
 
 ## Use Prompt Mixing?
 
 This options allows the prompts to be mixed when changing the "scene". This means that when a new prompt is used for n images (selected amount on the slider) both prompts will be combined, that of the new scene and the old one. If you for example have 30 FPS and select Prompt Mixing Loops = 15 this would result in 0,5 seconds of mixed prompts in between scenes. In the example above this would mean it does not directly go from "cat" to "dog", but uses "cat, dog" for 15 images. The results of this method do heavily vary depending on the concrete prompts and the model you are using, but sometimes it produces some really neat transformations that look much more fluid than without prompt mixing.
+
+If you use prompt mixing you can also choose if the prompts are just concatenated or if they should be weighted so that the prompt slowly shifts from one to another. By default "Gradual Prompt Mixing?" is true, meaning if you enable prompt mixing it will be gradual prompt mixing, if you prefer concatenation just uncheck the "Gradual Prompt Mixing?" checkbox.
 
 
 ## Tipps on using this script
@@ -96,62 +96,124 @@ This options allows the prompts to be mixed when changing the "scene". This mean
 
 These are three different examples of the multiprompt example from above.
 
-https://user-images.githubusercontent.com/58605249/211693510-aaf14830-b3d2-4989-a2c5-75742cc9dc84.mp4
+NEW EXAMPLES WILL FOLLOW SOON
 
 
-https://user-images.githubusercontent.com/58605249/211693537-5aa8414d-37f4-48dd-955b-e3bd15b9bb79.mp4
-
-
-https://user-images.githubusercontent.com/58605249/211693603-c0b52992-8db0-44ac-a7ff-4c5882c8f4e0.mp4
-
-
-Here is an example of a more complex multiprompt and two small results.
+Here is an example of a more complex multiprompt and it's results.
 
 ~~~
-# Multiprompt for a video about evolution
-1::chemical reaction, molecules, atoms, protein::
-25::bacteria::
-50::multicellular organism, underwater::
-75::sea worm in the ocean::
-100::fish in the ocean::
-110::coelacanth in the ocean, prehistoric fish::
-125::coelacanth crawling on the beach, prehistoric fish::underwater, fish
-150::reptilian::
-175::amphibian, frog::
-200::rodents, rat::
-225::squirrel::
-250::monkey::
-275::human monkey::
-300::neanderthal::comic
-325::Stone Age man::comic
-350::knight::comic
-375::man with phone::
-400::man in the future::
-425::cyborg::
-450::alien cyborg::
-475::singularity, cyber technology, psychedelic::
-500::creation of universe, psychedelic::
+# Multiprompt for a video about evolution.
+- - 10
+  - molecules, atoms, quantum physics, mysterious, electromagnetic interaction
+  - global_prompt: centered:1.5, highly detailed, poster art:0.2, 2d game concept art:0.2, realistic:0.5, octane render:0.5
+    global_negative_prompt: comic, writing, watermark, figurine, table, caption
+    zoom: true
+    zoom_level: 0.99
+- - 10
+  - protein, biochemistry, nucleus, DNA replication
+- - 10
+  - bacteria, unicellular organism, cell
+- - 10
+  - multicellular organism, tardigrade:0.5, underwater
+- - 10
+  - sea worm in the ocean
+- - 10
+  - prehistoric fish in the ocean
+- - 10
+  - coelacanth in the ocean, prehistoric fish
+- - 10
+  - prehistoric reptilian, on the beach
+- - 10
+  - amphibian, prehistoric frog, in the grass
+- - 10
+  - rodent, prehistoric rat, in the grass
+- - 10
+  - prehistoric squirrel
+- - 10
+  - monkey in the jungle
+- - 10
+  - human monkey in the jungle
+- - 10
+  - neanderthal
+  - zoom: false
+- - 10
+  - Stone Age man
+- - 10
+  - viking, pagan warrior
+- - 10
+  - knight of teutonic order, medieval combat, castle
+- - 10
+  - man in suit, 19th century suit, woman in 19th century cloth, industrial revolution
+- - 10
+  - man with phone, modern building, modern clothing
+- - 10
+  - man in the future, futuristic building, VR
+- - 10
+  - cyborg, in spaceship, futuristic
+- - 10
+  - alien cyborg, in alien spaceship, cybernetic, alien technology
+- - 10
+  - singularity, cyber technology, psychedelic, lovecraftian creature
+  - zoom: true
+    zoom_level: 1.04
+    rotate: true
+    rotate_degree: 1
+- - 20
+  - creation of universe, psychedelic, holy
+  - negative_prompt: comic, writing, watermark, figurine, table
 ~~~
-
-
-
-https://user-images.githubusercontent.com/58605249/211694043-74c67076-4e49-4e43-a9ce-de4b1edb1c1c.mp4
-
-
-
-https://user-images.githubusercontent.com/58605249/211694087-05b8936c-6be9-4407-9e61-8c4013504803.mp4
-
 
 
 Long version, better quality, 16:9, 30 FPS
 
-https://www.youtube.com/watch?v=-CuH8WdsKag&t=11s
+https://www.youtube.com/watch?v=bb5TzMyQZuA&t=1s
 
+## Keyword arguments
 
-Version with improved multipromt txt file (more precise prompts), 16:9, 30 FPS
+Here is a list of all arguments including all available keyword arguments and their expected data type:
 
-https://www.youtube.com/watch?v=oBkNe_uzgXA&t=32s
+~~~
+Required arguments (positional):
+- [0] = duration: int
+- [1] = prompt: str
 
+Optional arguments (keywords):
+- prompt_global: str
+- negative_prompt_global: str
+
+- negative_prompt: str
+- seed: int
+- subseed: int
+- subseed_strength: float
+- seed_resize_from_h: int
+- seed_resize_from_w: int
+- steps: int
+- cfg_scale: float
+- restore_faces: bool
+- tiling: bool
+- denoising_strength: float
+
+- zoom: bool
+- zoom_level: float
+- direction_x: float
+- direction_y: float
+
+- rotate: bool
+- rotate_degree: float
+
+- is_tiled: bool
+- trnx: bool
+- trnx_left: bool
+- trnx_percent: float
+- trny: bool
+- trny_up: bool
+- trny_percent: float
+
+- seed_reuse: int
+- use_prompt_mixing: bool
+- prompt_mixing_loops: int
+- gradual_mixing: bool
+~~~
 
 ## FFMPEG bug
 
