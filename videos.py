@@ -11,6 +11,7 @@ from modules.sd_samplers import samplers
 from modules.shared import opts, cmd_opts, state
 from PIL import Image
 import modules
+import yaml
 
 
 class Script(scripts.Script):
@@ -49,17 +50,18 @@ class Script(scripts.Script):
         trny_percent = gr.Slider(minimum=0, maximum=50, step=1, label='PercentY', value=0)
         show = gr.Checkbox(label='Show generated pictures in ui', value=False)
 
-        use_multiprompt = gr.Checkbox(label='Use Multipromt?', value=False)
-        multiprompt_path = gr.Textbox(label='Multiprompt txt path', value="")
-        seed_reuse = gr.Slider(minimum=1, maximum=50, step=1, label='Use seed for n images', value=1)
+        use_multiprompt = gr.Checkbox(label='Use multiprompt?', value=False)
+        multiprompt_path = gr.Textbox(label='Multiprompt yaml path', value="")
         use_prompt_mixing = gr.Checkbox(label='Use Prompt Mixing?', value=False)
-        prompt_mixing_loops = gr.Slider(minimum=0, maximum=50, step=1, label='Prompt Mixing Loops', value=0)
+        prompt_mixing_loops = gr.Slider(minimum=0, maximum=120, step=1, label='Prompt Mixing Loops', value=0)
+        gradual_mixing = gr.Checkbox(label='Gradual Prompt Mixing?', value=True)
+        comma_fix = gr.Checkbox(label='Add comma before prompt to hotfix issue with ignored prompts in some models?', value=True)
 
         return [show, prompt_end, prompt_end_trigger, seconds, fps, smooth, denoising_strength_change_factor,
                 zoom, zoom_level, direction_x, direction_y,
                 rotate, rotate_degree,
                 is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent,
-                use_multiprompt, multiprompt_path, seed_reuse, use_prompt_mixing, prompt_mixing_loops]
+                use_multiprompt, multiprompt_path, use_prompt_mixing, prompt_mixing_loops, gradual_mixing, comma_fix]
 
     def zoom_into(self, img, zoom, direction_x, direction_y):
         neg = lambda x: 1 if x > 0 else -1
@@ -153,7 +155,7 @@ class Script(scripts.Script):
             zoom, zoom_level, direction_x, direction_y,
             rotate, rotate_degree,
             is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent,
-            use_multiprompt, multiprompt_path, seed_reuse, use_prompt_mixing, prompt_mixing_loops):
+            use_multiprompt, multiprompt_path, use_prompt_mixing, prompt_mixing_loops, gradual_mixing, comma_fix):
         processing.fix_seed(p)
 
         p.batch_size = 1
@@ -176,27 +178,24 @@ class Script(scripts.Script):
 
         initial_color_corrections = [processing.setup_color_correction(p.init_images[0])]
 
-        multiprompt = []
         if use_multiprompt:
-            with open(multiprompt_path) as file: multiprompt_raw = file.read().splitlines()
-            prompt_global = ''
-            for line in multiprompt_raw:
-                if line.strip()[0] == '$':
-                    prompt_global += ', ' + line.strip()[1:]
-                if not (line == '' or line.isspace() or line.strip()[0] == '#' or line.strip()[0] == '$'):
-                    split_iter = [elem.strip() for elem in line.split('::')]
-                    if len(split_iter) == 2:
-                        split_iter.append('')
-                    multiprompt.append([int(split_iter[0]), split_iter[1], split_iter[2]])
+            multiprompt = get_multiprompt_from_path(multiprompt_path)
+        else:
+            multiprompt = []
+        
+        # Scales the multiprompt to number of loops
         multiprompt.sort()
         if len(multiprompt) > 0:
             multiprompt_scale = (loops / multiprompt[-1][0]) * (len(multiprompt) / (len(multiprompt) + 1))
         for data in multiprompt:
             data[0] = int(data[0] * multiprompt_scale)
-        loop_modulo = 0
+
+        global_prompt = ''
+        negative_global_prompt = ''
 
         for n in range(batch_count):
             history = []
+            processing_data = []
 
             for i in range(loops):
                 p.n_iter = 1
@@ -208,14 +207,79 @@ class Script(scripts.Script):
 
                 if use_multiprompt and len(multiprompt) > 0:
                     for j in range(len(multiprompt)):
+                        if i == multiprompt[j][0]:
+                            if "negative_prompt" in multiprompt[j][2]:
+                                processing_data = [multiprompt[j][1], multiprompt[j][2]["negative_prompt"], multiprompt[j][2].copy()]
+                            else:
+                                processing_data = [multiprompt[j][1], '', multiprompt[j][2].copy()]
+
+                            if "global_prompt" in multiprompt[j][2].keys():
+                                global_prompt = multiprompt[j][2]["global_prompt"]
+                            if "negative_global_prompt" in multiprompt[j][2].keys():
+                                negative_global_prompt = multiprompt[j][2]["negative_global_prompt"]
+
                         if i >= multiprompt[j][0]:
                             if use_prompt_mixing and i - multiprompt[j][0] < prompt_mixing_loops and j > 0:
-                                p.prompt = multiprompt[j][1] + ', ' + multiprompt[j-1][1] + prompt_global
-                                p.negative_prompt = multiprompt[j][2] + ', ' + multiprompt[j-1][2]
+                                if gradual_mixing:
+                                    scale = (i - multiprompt[j][0]) / prompt_mixing_loops
+                                    processing_data[0] = combine_prompts(multiprompt[j-1][1], multiprompt[j][1], scale)
+                                else:
+                                    processing_data[0] = multiprompt[j][1] + ', ' + multiprompt[j-1][1]
                             else:
-                                p.prompt = multiprompt[j][1] + prompt_global
-                                p.negative_prompt = multiprompt[j][2]
+                                processing_data[0] = multiprompt[j][1]
 
+                            if global_prompt != '':
+                                if processing_data[0] == '':
+                                    processing_data[0] = global_prompt
+                                else:
+                                    processing_data[0] = processing_data[0] + ', ' + global_prompt
+
+                            if negative_global_prompt != '':
+                                if processing_data[1] == '':
+                                    processing_data[1] = negative_global_prompt
+                                else:
+                                    processing_data[1] = processing_data[1] + ', ' + negative_global_prompt
+
+                            if comma_fix:
+                                processing_data[0] = ',' + processing_data[0]
+
+                            apply_scene_to_processing(p, *processing_data)
+
+                            if "zoom" in processing_data[2].keys():
+                                zoom = processing_data[2]["zoom"]
+                            if "zoom_level" in processing_data[2].keys():
+                                zoom_level = processing_data[2]["zoom_level"]
+                            if "direction_x" in processing_data[2].keys():
+                                direction_x = processing_data[2]["direction_x"]
+                            if "direction_y" in processing_data[2].keys():
+                                direction_y = processing_data[2]["direction_y"]
+                            if "rotate" in processing_data[2].keys():
+                                rotate = processing_data[2]["rotate"]
+                            if "rotate_degree" in processing_data[2].keys():
+                                rotate_degree = processing_data[2]["rotate_degree"]
+                            if "is_tiled" in processing_data[2].keys():
+                                is_tiled = processing_data[2]["is_tiled"]
+                            if "trnx" in processing_data[2].keys():
+                                trnx = processing_data[2]["trnx"]
+                            if "trnx_left" in processing_data[2].keys():
+                                trnx_left = processing_data[2]["trnx_left"]
+                            if "trnx_percent" in processing_data[2].keys():
+                                trnx_percent = processing_data[2]["trnx_percent"]
+                            if "trny" in processing_data[2].keys():
+                                trny = processing_data[2]["trny"]
+                            if "trny_up" in processing_data[2].keys():
+                                trny_up = processing_data[2]["trny_up"]
+                            if "trny_percent" in processing_data[2].keys():
+                                trny_percent = processing_data[2]["trny_percent"]
+                            if "seed_reuse" in processing_data[2].keys():
+                                seed_reuse = processing_data[2]["seed_reuse"]
+                            if "use_prompt_mixing" in processing_data[2].keys():
+                                use_prompt_mixing = processing_data[2]["use_prompt_mixing"]
+                            if "prompt_mixing_loops" in processing_data[2].keys():
+                                prompt_mixing_loops = processing_data[2]["prompt_mixing_loops"]
+                            if "gradual_mixing" in processing_data[2].keys():
+                                gradual_mixing = processing_data[2]["gradual_mixing"]
+                                
                 if i > int(loops*prompt_end_trigger) and prompt_end not in p.prompt and prompt_end != '':
                     p.prompt = prompt_end.strip() + ' ' + p.prompt.strip()
 
@@ -252,15 +316,8 @@ class Script(scripts.Script):
 
                 p.init_images = [init_img]
 
-                if loop_modulo >= seed_reuse-1:
-                    loop_modulo = 0
-                    p.seed = seed + 1
-                else:
-                    loop_modulo += 1
-                    p.seed = seed
-
+                p.seed = seed + 1
                 p.denoising_strength = min(max(p.denoising_strength * denoising_strength_change_factor, 0.1), 1)
-
 
             grid = images.image_grid(history, rows=1)
             if opts.grid_save:
@@ -357,3 +414,109 @@ def play_video_ffmpeg(video_path):
     subprocess.Popen(
         f'''{ff_path} "{video_path}"'''
     )
+
+
+def get_multiprompt_from_path(path):
+    multiprompt = []
+    if not os.path.isfile(path):
+        raise FileNotFoundError("can't find multiprompt file")
+    with open(path) as multiprompt_file:
+        multiprompt = yaml.safe_load(multiprompt_file.read())
+    for scene in multiprompt:
+        if len(scene) == 2:
+            scene.append({})
+            
+    time_trigger_value = 0
+    for i in range(len(multiprompt)):
+        save_value = multiprompt[i][0]
+        multiprompt[i][0] = time_trigger_value
+        time_trigger_value += save_value
+    multiprompt.append([time_trigger_value, multiprompt[-1][1], multiprompt[-1][2]])
+            
+    return multiprompt
+
+
+# Applies scene configuration to Processing object.
+def apply_scene_to_processing(p, prompt, negative_prompt, args_dict):
+    p.prompt = prompt
+    p.negative_prompt = negative_prompt
+
+    if "seed" in args_dict.keys():
+        p.seed = args_dict["seed"]
+        
+    if "subseed" in args_dict.keys():
+        p.subseed = args_dict["subseed"]
+        
+    if "subseed_strength" in args_dict.keys():
+        p.subseed_strength = args_dict["subseed_strength"]
+        
+    if "seed_resize_from_h" in args_dict.keys():
+        p.seed_resize_from_h = args_dict["seed_resize_from_h"]
+        
+    if "seed_resize_from_w" in args_dict.keys():
+        p.seed_resize_from_w = args_dict["seed_resize_from_w"]
+        
+    if "steps" in args_dict.keys():
+        p.steps = args_dict["steps"]
+        
+    if "cfg_scale" in args_dict.keys():
+        p.cfg_scale = args_dict["cfg_scale"]
+        
+    if "restore_faces" in args_dict.keys():
+        p.restore_faces = args_dict["restore_faces"]
+        
+    if "tiling" in args_dict.keys():
+        p.tiling = args_dict["tiling"]
+        
+    if "denoising_strength" in args_dict.keys():
+        p.denoising_strength = args_dict["denoising_strength"]
+
+
+def combine_prompts(first_prompt, second_prompt, weight=0.5):
+    if ',' in first_prompt:
+        first_list = [elem.strip() for elem in first_prompt.split(',')]
+    else:
+        first_list = [first_prompt.strip()]
+    for i in range(len(first_list)):
+        if ':' not in first_list[i]:
+            first_list[i] =  first_list[i] + ':1'
+    first_dict = {}
+    for elem in first_list:
+        prompt, prompt_weight = elem.split(':')
+        prompt_weight = float(prompt_weight)
+        first_dict[prompt] = prompt_weight
+    
+    if ',' in second_prompt:
+        second_list = [elem.strip() for elem in second_prompt.split(',')]
+    else:
+        second_list = [second_prompt.strip()]    
+    for i in range(len(second_list)):
+        if ':' not in second_list[i]:
+            second_list[i] =  second_list[i] + ':1'
+    second_dict = {}
+    for elem in second_list:
+        prompt, prompt_weight = elem.split(':')
+        prompt_weight = float(prompt_weight)
+        second_dict[prompt] = prompt_weight
+    
+    first_weight = 1 - weight
+    for key in first_dict.keys():
+        first_dict[key] = first_dict[key] * first_weight
+    for key in second_dict.keys():
+        second_dict[key] = second_dict[key] * weight
+    
+    result = first_dict.copy()
+    for key in second_dict.keys():
+        if key in result.keys():
+            result[key] = result[key] + second_dict[key]
+        else:
+            result[key] = second_dict[key]
+    
+    added = 0
+    for key in result.keys():
+        added += result[key]
+    normalization_factor = 0.5 / (added / len(result.keys()))
+    for key in result.keys():
+        result[key] = result[key] * normalization_factor
+    
+    return ', '.join([key + ':' + str(result[key]) for key in result.keys()])
