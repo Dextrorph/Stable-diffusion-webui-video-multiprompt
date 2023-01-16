@@ -96,7 +96,11 @@ If you use prompt mixing you can also choose if the prompts are just concatenate
 
 These are three different examples of the multiprompt example from above.
 
-NEW EXAMPLES WILL FOLLOW SOON
+
+https://user-images.githubusercontent.com/58605249/212650165-2fda65a0-e86a-4996-be1c-07b51b6feb9c.mp4
+
+
+https://user-images.githubusercontent.com/58605249/212650239-f1aff68d-1044-4ff7-a53e-e411b1d0c8b9.mp4
 
 
 Here is an example of a more complex multiprompt and it's results.
@@ -163,8 +167,16 @@ Here is an example of a more complex multiprompt and it's results.
   - negative_prompt: comic, writing, watermark, figurine, table
 ~~~
 
+Short version:
 
-Long version, better quality, 16:9, 30 FPS
+https://www.youtube.com/watch?v=g2SS7O_aWxA
+
+https://www.youtube.com/watch?v=LudHIXeyA8Q
+
+https://www.youtube.com/watch?v=7WQ2rpi-7Us
+
+
+Long version, better quality, 16:9, 30 FPS, added music
 
 https://www.youtube.com/watch?v=bb5TzMyQZuA&t=1s
 
