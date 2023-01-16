@@ -215,6 +215,11 @@ Optional arguments (keywords):
 - gradual_mixing: bool
 ~~~
 
+## Model ignoring beginning of prompt bug
+
+When testing the new version of this script I realized that there is a problem with some models like protogenX58 giving really bad results and after two days of analyzing it with guys in Reddit I finally found out that the problem is that in some models the first part of the prompt is ignored. If only the character or the whole first word is ignored is word-dependend so for some word is this, for some that. But all tests consistently showed that for every word when putting a comma in front of it the comma gets ignored instead of the word or parts of it, so just putting a comma in front of all prompts does fix this behaviour. This script has the option to automatically add a comma in front of every prompt before processing which is controlled by the "Add comma before prompt to hotfix issue with ignored prompts in some models?" checkbox.
+
+
 ## FFMPEG bug
 
 Sometimes, especially when making longer videos with higher framerates I get the error message that width or height can't be zero and it does not create a video. But the images have been created. To still get the video you can just run FFMPEG manually. To do this you have to create a txt file containing all absolute paths of the images in a certain format in the right order. To do this efficiently I use the following code and run it on a Python interpreter.
