@@ -169,10 +169,6 @@ Here is an example of a more complex multiprompt and it's results.
 
 Short version:
 
-https://www.youtube.com/watch?v=g2SS7O_aWxA
-
-https://www.youtube.com/watch?v=LudHIXeyA8Q
-
 https://www.youtube.com/watch?v=7WQ2rpi-7Us
 
 
