@@ -111,8 +111,6 @@ Here is an example of a more complex multiprompt and it's results.
   - molecules, atoms, quantum physics, mysterious, electromagnetic interaction
   - global_prompt: centered:1.5, highly detailed, poster art:0.2, 2d game concept art:0.2, realistic:0.5, octane render:0.5
     global_negative_prompt: comic, writing, watermark, figurine, table, caption
-    zoom: true
-    zoom_level: 0.99
 - - 10
   - protein, biochemistry, nucleus, DNA replication
 - - 10
@@ -139,7 +137,6 @@ Here is an example of a more complex multiprompt and it's results.
   - human monkey in the jungle
 - - 10
   - neanderthal
-  - zoom: false
 - - 10
   - Stone Age man
 - - 10
