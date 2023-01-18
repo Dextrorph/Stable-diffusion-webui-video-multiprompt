@@ -320,7 +320,7 @@ class Script(scripts.Script):
                 p.denoising_strength = min(max(p.denoising_strength * denoising_strength_change_factor, 0.1), 1)
 
             grid = images.image_grid(history, rows=1)
-            if opts.grid_save:
+            if opts.grid_save and loops < 200:
                 images.save_image(grid, p.outpath_grids, "grid", initial_seed, p.prompt, opts.grid_format, info=info,
                                  short_filename=not opts.grid_extended_filename, grid=True, p=p)
 
