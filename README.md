@@ -178,46 +178,50 @@ https://www.youtube.com/watch?v=bb5TzMyQZuA&t=1s
 Here is a list of all arguments including all available keyword arguments and their expected data type:
 
 ~~~
+## List of all properties
+
 Required arguments (positional):
 - [0] = duration: int
 - [1] = prompt: str
+- [2] = keyword_dict (optional)
 
 Optional arguments (keywords):
-    prompt_global: str
-    negative_prompt_global: str
+- prompt_global: str
+- negative_prompt_global: str
+- negative_prompt: str
 
-    negative_prompt: str
-    seed: int
-    subseed: int
-    subseed_strength: float
-    seed_resize_from_h: int
-    seed_resize_from_w: int
-    steps: int
-    cfg_scale: float
-    restore_faces: bool
-    tiling: bool
-    denoising_strength: float
+- seed: int
+- subseed: int
+- subseed_strength: float
+- seed_resize_from_h: int
+- seed_resize_from_w: int
 
-    zoom: bool
-    zoom_level: float
-    direction_x: float
-    direction_y: float
+- steps: int
+- cfg_scale: float
+- restore_faces: bool
+- tiling: bool
+- denoising_strength: float
 
-    rotate: bool
-    rotate_degree: float
+- zoom: bool
+- zoom_level: float
+- direction_x: float        # For zooming on x-axis
+- direction_y: float        # For zooming on y-axis
 
-    is_tiled: bool
-    trnx: bool
-    trnx_left: bool
-    trnx_percent: float
-    trny: bool
-    trny_up: bool
-    trny_percent: float
+- rotate: bool
+- rotate_degree: float
 
-    seed_reuse: int
-    use_prompt_mixing: bool
-    prompt_mixing_loops: int
-    gradual_mixing: bool
+- is_tiled: bool
+
+- trnx: bool                 # Translate on x-axis?
+- trnx_left: bool            # Translate on x-axis to the left?
+- trnx_percent: float        # Translate on x-axis how much percent?
+- trny: bool                 # Translate on y-axis?
+- trny_up: bool              # Translate on y-axis to the left?
+- trny_percent: float        # Translate on y-axis how much percent?
+
+- use_prompt_mixing: bool
+- prompt_mixing_loops: int   # Mix prompt for how many frames?
+- gradual_mixing: bool
 ~~~
 
 ## Model ignoring beginning of prompt bug
