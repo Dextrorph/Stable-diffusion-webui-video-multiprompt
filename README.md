@@ -227,6 +227,8 @@ When testing the new version of this script I realized that there is a problem w
 
 ## FFMPEG bug
 
+This is fixed now. I leave this explantion here anyways, for the case anybody need to manually use FFMPEG for another reason.
+
 Sometimes, especially when making longer videos with higher framerates I get the error message that width or height can't be zero and it does not create a video. But the images have been created. To still get the video you can just run FFMPEG manually. To do this you have to create a txt file containing all absolute paths of the images in a certain format in the right order. To do this efficiently I use the following code and run it on a Python interpreter.
 
 ~~~
