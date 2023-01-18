@@ -422,9 +422,17 @@ def get_multiprompt_from_path(path):
         raise FileNotFoundError("can't find multiprompt file")
     with open(path) as multiprompt_file:
         multiprompt = yaml.safe_load(multiprompt_file.read())
-    for scene in multiprompt:
+    for i in range(len(multiprompt)):
+        scene = multiprompt[i]
         if len(scene) == 2:
             scene.append({})
+        if len(scene) > 3:
+            combined_dict = {}
+            for elem in scene[2:]:
+                if isinstance(elem, dict):
+                    for key in elem.keys():
+                        combined_dict[key] = elem[key]
+            multiprompt[i] = [scene[0], scene[1], combined_dict]
             
     time_trigger_value = 0
     for i in range(len(multiprompt)):
