@@ -216,7 +216,7 @@ Optional arguments (keywords):
 - trnx_left: bool            # Translate on x-axis to the left?
 - trnx_percent: float        # Translate on x-axis how much percent?
 - trny: bool                 # Translate on y-axis?
-- trny_up: bool              # Translate on y-axis to the left?
+- trny_up: bool              # Translate on y-axis up?
 - trny_percent: float        # Translate on y-axis how much percent?
 
 - use_prompt_mixing: bool
