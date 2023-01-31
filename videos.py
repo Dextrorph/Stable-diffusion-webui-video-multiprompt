@@ -472,7 +472,7 @@ def get_multiprompt_from_path(path):
     return multiprompt
 
 
-# Applies scene configuration to Processing object.
+# Applies scene configuration to processing object.
 def apply_scene_to_processing(p, prompt, negative_prompt, args_dict):
     p.prompt = prompt
     p.negative_prompt = negative_prompt
