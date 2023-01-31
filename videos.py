@@ -55,13 +55,17 @@ class Script(scripts.Script):
         use_prompt_mixing = gr.Checkbox(label='Use Prompt Mixing?', value=False)
         prompt_mixing_loops = gr.Slider(minimum=0, maximum=120, step=1, label='Prompt Mixing Loops', value=0)
         gradual_mixing = gr.Checkbox(label='Gradual Prompt Mixing?', value=True)
+        strong_denoising_transition = gr.Checkbox(label="Use strong denoising for scene transition?", value=False)
+        strong_denoising = gr.Slider(minimum=0.3, maximum=1, step=0.01, label="Strong denoising strength", value=0.75)
+        strong_denoising_steps = gr.Slider(minimum=1, maximum=120, step=1, label="Strong denoising frames", value=1)
         comma_fix = gr.Checkbox(label='Add comma before prompt to hotfix issue with ignored prompts in some models?', value=True)
 
         return [show, prompt_end, prompt_end_trigger, seconds, fps, smooth, denoising_strength_change_factor,
                 zoom, zoom_level, direction_x, direction_y,
                 rotate, rotate_degree,
                 is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent,
-                use_multiprompt, multiprompt_path, use_prompt_mixing, prompt_mixing_loops, gradual_mixing, comma_fix]
+                use_multiprompt, multiprompt_path, use_prompt_mixing, prompt_mixing_loops, gradual_mixing,
+                strong_denoising_transition, strong_denoising, strong_denoising_steps, comma_fix]
 
     def zoom_into(self, img, zoom, direction_x, direction_y):
         neg = lambda x: 1 if x > 0 else -1
@@ -155,7 +159,8 @@ class Script(scripts.Script):
             zoom, zoom_level, direction_x, direction_y,
             rotate, rotate_degree,
             is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent,
-            use_multiprompt, multiprompt_path, use_prompt_mixing, prompt_mixing_loops, gradual_mixing, comma_fix):
+            use_multiprompt, multiprompt_path, use_prompt_mixing, prompt_mixing_loops, gradual_mixing,
+            strong_denoising_transition, strong_denoising, strong_denoising_steps, comma_fix):
         processing.fix_seed(p)
 
         p.batch_size = 1
@@ -177,6 +182,10 @@ class Script(scripts.Script):
         state.job_count = loops * batch_count
 
         initial_color_corrections = [processing.setup_color_correction(p.init_images[0])]
+
+        last_prompt = ""
+        last_denoising = 1
+        high_denoising_count = 0
 
         if use_multiprompt:
             multiprompt = get_multiprompt_from_path(multiprompt_path)
@@ -245,6 +254,19 @@ class Script(scripts.Script):
 
                             apply_scene_to_processing(p, *processing_data)
 
+                            if strong_denoising_transition and p.prompt != last_prompt:
+                                if high_denoising_count == 0:
+                                    last_denoising = p.denoising_strength
+                                p.denoising_strength = strong_denoising
+                                high_denoising_count += 1
+                            if high_denoising_count > strong_denoising_steps:
+                                if "denoising_strength" in processing_data[2].keys():
+                                    p.denoising_strength = processing_data[2]["denoising_strength"]
+                                else:
+                                    p.denoising_strength = last_denoising
+                                last_prompt = p.prompt
+                                high_denoising_count = 0
+
                             if "zoom" in processing_data[2].keys():
                                 zoom = processing_data[2]["zoom"]
                             if "zoom_level" in processing_data[2].keys():
@@ -279,6 +301,12 @@ class Script(scripts.Script):
                                 prompt_mixing_loops = processing_data[2]["prompt_mixing_loops"]
                             if "gradual_mixing" in processing_data[2].keys():
                                 gradual_mixing = processing_data[2]["gradual_mixing"]
+                            if "strong_denoising_transition" in processing_data[2].keys():
+                                strong_denoising_transition = processing_data[2]["strong_denoising_transition"]
+                            if "strong_denoising" in processing_data[2].keys():
+                                strong_denoising = processing_data[2]["strong_denoising"]
+                            if "strong_denoising_steps" in processing_data[2].keys():
+                                strong_denoising_steps = processing_data[2]["strong_denoising_steps"]
                                 
                 if i > int(loops*prompt_end_trigger) and prompt_end not in p.prompt and prompt_end != '':
                     p.prompt = prompt_end.strip() + ' ' + p.prompt.strip()
@@ -320,7 +348,7 @@ class Script(scripts.Script):
                 p.denoising_strength = min(max(p.denoising_strength * denoising_strength_change_factor, 0.1), 1)
 
             grid = images.image_grid(history, rows=1)
-            if opts.grid_save and loops < 200:
+            if opts.grid_save and loops < 100:
                 images.save_image(grid, p.outpath_grids, "grid", initial_seed, p.prompt, opts.grid_format, info=info,
                                  short_filename=not opts.grid_extended_filename, grid=True, p=p)
 
