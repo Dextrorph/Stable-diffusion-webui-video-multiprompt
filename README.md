@@ -91,6 +91,7 @@ If you use prompt mixing you can also choose if the prompts are just concatenate
 - A higher CFG Scale should give results closer to the prompt but with worse image quality. I guess around 20 should be reasonable, but it might be worth to test different values.
 - Try different sampling methods, that might also help to improve results.
 - Prompt end still works, with an End Prompt Blend Trigger Percent of 0 it can be used to add more global prompts without having to edit the multiprompt txt.
+- For abrupt scene transitions you can use the "Use strong denoising for scene transition?" option. Select the denoising strength you wish to use and for how many frames it should be used when a new scene starts. This is the opposite of what prompt mixing does and using it together will give wierd results. But you can use keywords to disable one and enable the other so that some scene transitions use prompt mixing and some use hard denoising.
 
 ## Examples for multiprompt
 
@@ -222,6 +223,10 @@ Optional arguments (keywords):
 - use_prompt_mixing: bool
 - prompt_mixing_loops: int   # Mix prompt for how many frames?
 - gradual_mixing: bool
+
+- strong_denoising_transition: bool   # Enables or disables strong denoising at scene transition
+- strong_denoising: float             # Denoising strength at scene transition
+- strong_denoising_steps: int         # How many frames to use the strong denoising?
 ~~~
 
 ## Model ignoring beginning of prompt bug
