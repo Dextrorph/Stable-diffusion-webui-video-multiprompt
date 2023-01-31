@@ -174,6 +174,12 @@ Long version, better quality, 16:9, 30 FPS, added music
 
 https://www.youtube.com/watch?v=bb5TzMyQZuA&t=1s
 
+
+Example of another multiprompt using strong denoising for more abrupt scene transitions:
+
+https://www.youtube.com/watch?v=BYsFdL0RJGk
+
+
 ## Keyword arguments
 
 Here is a list of all arguments including all available keyword arguments and their expected data type:
