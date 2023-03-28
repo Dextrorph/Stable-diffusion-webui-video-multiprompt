@@ -82,7 +82,7 @@ If you use prompt mixing you can also choose if the prompts are just concatenate
 - I tested this script with different models and it works, but the results do vary a lot. If a multiprompt does not give good results on one model it might on a different model.
 - Test your prompts separately but using txt2img if you're not sure if they will work as expected.
 - Generate short versions with low FPS first to see how you can improve the multiprompt txt before you start making longer versions.
-- Separate content and style by using the global prompt feature (with $), you can have several global prompts in one file, they just get concatenated.
+- Separate content and style by using the global prompt feature, you can have several global prompts in one file, they just get concatenated.
 - Generate an appropriate starting image with txt2img.
 - You can make the video more fluid by reducing the denoising strength while increasing the sampling steps and FPS. The last example on YouTube "Evolution 4 (Stable Diffusion Video)" for example has 30 FPS and I used 60 sampling steps with a denoising strength of 0.5 and it looks almost fluid.
 - If you only have 6GB VRAM like me you can make 1:1 with 512x512 (Standard) or 16:9 with 640x360. I tested this resolutions a lot and never had any problems. Anythings bigger did cause problems, although not always.
