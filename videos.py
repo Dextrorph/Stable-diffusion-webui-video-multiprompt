@@ -12,6 +12,8 @@ from modules.shared import opts, cmd_opts, state
 from PIL import Image
 import modules
 import yaml
+from datetime import datetime
+from datetime import timedelta
 
 
 class Script(scripts.Script):
@@ -78,9 +80,15 @@ class Script(scripts.Script):
         x = w/2+direction_x*w/4
         y = h/2-direction_y*h/4
         zoom2 = zoom * 2
-        img = img.crop((x - w / zoom2, y - h / zoom2,
-                        x + w / zoom2, y + h / zoom2))
-        return img.resize((w, h), Image.LANCZOS)
+        if zoom >= 1:
+            img = img.crop((x - w / zoom2, y - h / zoom2,
+                            x + w / zoom2, y + h / zoom2))
+            img = img.resize((w, h), Image.LANCZOS)
+        else:
+            img = img.crop((x - w / zoom2, y - h / zoom2,
+                            x + w / zoom2, y + h / zoom2))
+            img = img.resize((w, h), Image.LANCZOS)
+        return img
 
     def rotate(self, img: Image, degrees: float):
         img = img.rotate(degrees)
@@ -360,7 +368,16 @@ class Script(scripts.Script):
 
         processed = Processed(p, all_images if show else [], initial_seed, initial_info)
 
-        files = [i for i in glob.glob(f'{p.outpath_samples}/*.png')]
+        current_date, yesterday_date = get_dates()
+
+        if os.path.exists(f'{p.outpath_samples}/{current_date}/') and os.path.isdir(f'{p.outpath_samples}/{current_date}/'):
+            sub_dir = current_date
+        elif os.path.exists(f'{p.outpath_samples}/{yesterday_date}/') and os.path.isdir(f'{p.outpath_samples}/{yesterday_date}/'):
+            sub_dir = yesterday_date
+        else:
+            raise NotADirectoryError("You probably took over two days to render and now this...\nCheck README.md FFMPEG fix")
+
+        files = [i for i in glob.glob(f'{p.outpath_samples}/{sub_dir}/*.png')]
         files.sort(key=lambda f: os.path.getmtime(f))
         files = files[-loops:]
         files = files + [files[-1]]  # minterpolate smooth break last frame, dupplicate this
@@ -472,7 +489,7 @@ def get_multiprompt_from_path(path):
     return multiprompt
 
 
-# Applies scene configuration to processing object.
+# Applies scene configuration to Processing object.
 def apply_scene_to_processing(p, prompt, negative_prompt, args_dict):
     p.prompt = prompt
     p.negative_prompt = negative_prompt
@@ -556,3 +573,10 @@ def combine_prompts(first_prompt, second_prompt, weight=0.5):
         result[key] = result[key] * normalization_factor
     
     return ', '.join([key + ':' + str(result[key]) for key in result.keys()])
+
+
+def get_dates():
+    current_date = datetime.today().strftime('%Y-%m-%d')
+    yesterday = datetime.today() - timedelta(days=1)
+    yesterday_date = yesterday.strftime('%Y-%m-%d')
+    return current_date, yesterday_date
