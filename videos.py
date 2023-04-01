@@ -61,7 +61,7 @@ class Script(scripts.Script):
         strong_denoising = gr.Slider(minimum=0.3, maximum=1, step=0.01, label="Strong denoising strength", value=0.75)
         strong_denoising_steps = gr.Slider(minimum=1, maximum=120, step=1, label="Strong denoising frames", value=1)
         comma_fix = gr.Checkbox(label='Add comma before prompt to hotfix issue with ignored prompts in some models?', value=True)
-        interpolation_steps = gr.Slider(minimum=1, maximum=50, step=1, label="Interpolation cadence", value=2)
+        interpolation_steps = gr.Slider(minimum=0, maximum=50, step=1, label="Interpolation cadence", value=2)
 
         return [show, prompt_end, prompt_end_trigger, seconds, fps, smooth, denoising_strength_change_factor,
                 zoom, zoom_level, direction_x, direction_y,
