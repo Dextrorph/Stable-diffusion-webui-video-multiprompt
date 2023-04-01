@@ -1,8 +1,9 @@
 # Stable diffusion webui video
 
-This script is created for use in the project https://github.com/AUTOMATIC1111/stable-diffusion-webui
+This script is created for use in the project https://github.com/AUTOMATIC1111/stable-diffusion-webui using img2img generates pictures one after another.
 
-using img2img generates pictures one after another. Also I still use this script sometimes, so unlike the original one this one still works. At least for now. ;)
+Note from Dextrorph:
+Also I still use this script sometimes, so unlike the original one this one still works. At least for now. ;)
 
 # Example
 
@@ -96,7 +97,7 @@ If you use prompt mixing you can also choose if the prompts are just concatenate
 
 ## Examples for multiprompt
 
-These are three different examples of the multiprompt example from above.
+These are two different examples of the multiprompt example from above.
 
 
 https://user-images.githubusercontent.com/58605249/212650165-2fda65a0-e86a-4996-be1c-07b51b6feb9c.mp4
