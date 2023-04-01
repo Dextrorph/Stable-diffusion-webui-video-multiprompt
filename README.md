@@ -92,6 +92,7 @@ If you use prompt mixing you can also choose if the prompts are just concatenate
 - Try different sampling methods, that might also help to improve results.
 - Prompt end still works, with an End Prompt Blend Trigger Percent of 0 it can be used to add more global prompts without having to edit the multiprompt txt.
 - For abrupt scene transitions you can use the "Use strong denoising for scene transition?" option. Select the denoising strength you wish to use and for how many frames it should be used when a new scene starts. This is the opposite of what prompt mixing does and using it together will give wierd results. But you can use keywords to disable one and enable the other so that some scene transitions use prompt mixing and some use strong denoising.
+- It works with ControlNet if you have enough VRAM. But there is an issue with "Interrupt", only restarting the UI will acutally interrupt it, otherwise only image generation gets interrupted, but not ControlNet. 
 
 ## Examples for multiprompt
 
