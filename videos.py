@@ -61,13 +61,14 @@ class Script(scripts.Script):
         strong_denoising = gr.Slider(minimum=0.3, maximum=1, step=0.01, label="Strong denoising strength", value=0.75)
         strong_denoising_steps = gr.Slider(minimum=1, maximum=120, step=1, label="Strong denoising frames", value=1)
         comma_fix = gr.Checkbox(label='Add comma before prompt to hotfix issue with ignored prompts in some models?', value=True)
+        interpolation_steps = gr.Slider(minimum=1, maximum=50, step=1, label="Interpolation cadence", value=2)
 
         return [show, prompt_end, prompt_end_trigger, seconds, fps, smooth, denoising_strength_change_factor,
                 zoom, zoom_level, direction_x, direction_y,
                 rotate, rotate_degree,
                 is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent,
                 use_multiprompt, multiprompt_path, use_prompt_mixing, prompt_mixing_loops, gradual_mixing,
-                strong_denoising_transition, strong_denoising, strong_denoising_steps, comma_fix]
+                strong_denoising_transition, strong_denoising, strong_denoising_steps, comma_fix, interpolation_steps]
 
     def zoom_into(self, img, zoom, direction_x, direction_y):
         neg = lambda x: 1 if x > 0 else -1
@@ -168,7 +169,7 @@ class Script(scripts.Script):
             rotate, rotate_degree,
             is_tiled, trnx, trnx_left, trnx_percent, trny, trny_up, trny_percent,
             use_multiprompt, multiprompt_path, use_prompt_mixing, prompt_mixing_loops, gradual_mixing,
-            strong_denoising_transition, strong_denoising, strong_denoising_steps, comma_fix):
+            strong_denoising_transition, strong_denoising, strong_denoising_steps, comma_fix, interpolation_steps):
         processing.fix_seed(p)
 
         p.batch_size = 1
@@ -385,7 +386,7 @@ class Script(scripts.Script):
         video_name = files[-1].split('\\')[-1].split('.')[0] + '.mp4'
         save_dir = os.path.join(os.path.split(os.path.abspath(p.outpath_samples))[0], 'img2img-videos')
 
-        video_path = make_video_ffmpeg(save_dir, video_name, files=files, fps=fps, smooth=smooth)
+        video_path = make_video_ffmpeg(save_dir, video_name, files=files, fps=fps, smooth=smooth, interpolation_steps=interpolation_steps)
         play_video_ffmpeg(video_path)
         processed.info = processed.info + '\nvideo save in ' + video_path
 
@@ -426,7 +427,7 @@ def find_ff(name='mpeg'):
     return ffmpeg_path
 
 
-def make_video_ffmpeg(save_dir, video_name, files=[], fps=10, smooth=True):
+def make_video_ffmpeg(save_dir, video_name, files=[], fps=10, smooth=True, interpolation_steps=1):
     path = modules.paths.script_path
     # save_dir = 'outputs/img2img-videos/'
     os.makedirs(save_dir, exist_ok=True)
@@ -440,17 +441,27 @@ def make_video_ffmpeg(save_dir, video_name, files=[], fps=10, smooth=True):
     open(txt_name, 'w').write('\n'.join(["file '" + os.path.join(path, f) + "'" for f in files]))
 
     # -vf "tblend=average,framestep=1,setpts=0.50*PTS"
-    subprocess.call(' '.join([
+    cmd = [
         f'{ff_path} -y',
         f'-r {fps}',
         '-f concat -safe 0',
         f'-i "{txt_name}"',
         '-vcodec libx264',
-        '-filter:v minterpolate' if smooth else '',   # smooth between images
+    ]
+
+    if smooth:
+        cmd.append(
+            '-filter:v "minterpolate=\'mi_mode=mci:mc_mode=aobmc:vsbmc=1:fps='
+            f'{fps * (interpolation_steps + 1)}\'"'
+        )
+
+    cmd.extend([
         '-crf 10',
         '-pix_fmt yuv420p',
-        f'"{video_name}"'
-    ]))
+        f'"{video_name}"',
+    ])
+
+    subprocess.call(' '.join(cmd))
     return video_name
 
 
