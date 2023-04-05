@@ -20,6 +20,7 @@ https://user-images.githubusercontent.com/107195976/191961159-c878aca6-267d-4f35
 
 
 # Install
+Install FFMPEG and put it into path.
 copy video.py in stable-diffusion-webui/scripts folder
 
 # Using
